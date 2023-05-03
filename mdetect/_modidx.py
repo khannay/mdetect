@@ -5,4 +5,10 @@ d = { 'settings': { 'branch': 'main',
                 'doc_host': 'https://khannay.github.io',
                 'git_url': 'https://github.com/khannay/mdetect',
                 'lib_path': 'mdetect'},
-  'syms': {'mdetect.core': {'mdetect.core.foo': ('core.html#foo', 'mdetect/core.py')}}}
+  'syms': { 'mdetect.core': { 'mdetect.core.PacketFlows.IAT_features': ('core.html#packetflows.iat_features', 'mdetect/core.py'),
+                              'mdetect.core.PacketFlows.size_features': ('core.html#packetflows.size_features', 'mdetect/core.py'),
+                              'mdetect.core.PacketFlows.size_iat_features': ('core.html#packetflows.size_iat_features', 'mdetect/core.py'),
+                              'mdetect.core.PacketFlows.stats_features': ('core.html#packetflows.stats_features', 'mdetect/core.py'),
+                              'mdetect.core._get_fid': ('core.html#_get_fid', 'mdetect/core.py'),
+                              'mdetect.core._get_frame_time': ('core.html#_get_frame_time', 'mdetect/core.py'),
+                              'mdetect.core.flow_duration': ('core.html#flow_duration', 'mdetect/core.py')}}}
