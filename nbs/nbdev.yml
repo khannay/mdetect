@@ -1,0 +1,9 @@
+project:
+  output-dir: _docs
+
+website:
+  title: "mdetect"
+  site-url: "https://khannay.github.io/mdetect"
+  description: "Malware detection"
+  repo-branch: main
+  repo-url: "https://github.com/khannay/mdetect"
