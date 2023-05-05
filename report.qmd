@@ -1,0 +1,118 @@
+---
+title: "Malware Detection from Network Captures"
+author: Kevin Hannay 
+toc: true 
+number-sections: true 
+format:
+    html: 
+        code-fold: true 
+jupyter: python3
+---
+
+## Introduction
+ This report summrarizes the work done in creating a classification model for malware detection from network captures (PCAP) files. The project is organized into a set of jupyter notebooks located in the `nbs` directory, with the majority of the logic located in the ``00_core.ipynb`` notebook. Additionally, using the nbdev library, the code in the notebooks is exported to a python package located in the `mdetect` directory. 
+
+From the home directory of the project the python package can be installed using the following command:
+
+```{bash}
+#| eval: false 
+pip install -e .
+```
+
+
+The python package also defines three command line scripts which can be used to run the project from the command line. These scripts are defined in the `01_cli.ipynb` notebook and are as follows:
+
+
+These allow for the project to move through the ML Ops pipeline from the command line, and also provide some wrapper code for getting started quickly with the models. 
+
+## Assumptions 
+For the purposes of this project I made the following assumptions about the customer need:
+
+* This model would be deployed on networks that aren't in the training data, i.e. we don't have pcap files which can be used to build a baseline for benign traffic for the specific network. If this data is available then it could be used to improve the model performance. 
+* The pcap data is being batch processed so that these files are periodically analyzed for malware signature, rather than a streaming solution. 
+
+
+## Feature Engineering
+
+The first step in the project is to transform the raw PCAP data into a set of features which can be used for classification. For this I made use of the scapy python library and created some wrappers and data structures to process and store the data in the raw PCAP files. My strategy for processing the PCAP files was to focus on TCP/UDP traffic and seperate the files into seperate flows or sessions. These flows are defined by unique 5-tuples of (src_ip, dst_ip, src_port, dst_port, protocol), and then these flows were further broken down along the time dimension by splitting up packets within a flow which were seperated in time. The logic behind this step was the need for this model to generalize to new PCAP files which may have more or less benign traffic overlayed on the malicious traffic. The conversion from PCAP to flows should help reduce the impact of benign traffic on the model.
+
+The next step was to compute features on these flows
+
+My overall technique focused on extracting features which should generalize well when applied to new network captures. Therefore, I tried to avoid using features that might be specific to the particular network used in the capture. For example, while I developed some features based on the Inner Arrival times of the packets I avoided using these features in the final model as they would be specific to the network used in the capture. However, in the event that we have access to data collected on a single network, these features could be used to improve the model.
+
+In the end I ended up constructing a set of 20 features which I used in the final model. These features are as follows:
+
+```{python}
+#| label: tbl-features
+#| tbl-cap: The features used in the classification algorithms
+
+from IPython.display import Markdown
+from tabulate import tabulate
+feature_names = ['duration', 'pkts_rate', 'bytes_rate', 'mean_size', 'std_sizes',
+       'q1_sizes', 'q2_sizes', 'q3_sizes', 'min_sizes', 'max_sizes',
+       'num_pkts', 'num_bytes', 'src_port', 'dst_port', 'protocol',
+       'flags_FIN', 'flags_SYN', 'flags_RST', 'flags_PSH', 'flags_ACK',
+       'flags_URG', 'flags_ECE', 'flags_CWR']
+feature_type = ['numeric' for _ in range(12)] + ['categorical' for _ in range(3)] + ['numeric' for _ in range(8)]
+descriptions = ["" for _ in range(len(feature_names))]
+feature_table = list(zip(feature_names, feature_type, descriptions))
+
+Markdown(tabulate(
+  feature_table, 
+  headers=["Name","Type", "Description"]
+))
+```
+
+- 'duration'
+- 'pkts_rate'
+- 'bytes_rate', 
+- 'mean_size', 
+- 'std_sizes',
+- 'q1_sizes', 
+- 'q2_sizes', 
+- 'q3_sizes', 
+- 'min_sizes', 
+- 'max_sizes',
+- 'num_pkts', 
+- 'num_bytes', 
+- 'src_port', 
+- 'dst_port', 
+- 'protocol',
+- 'flags_FIN', 
+- 'flags_SYN', 
+- 'flags_RST', 
+- 'flags_PSH', 
+- 'flags_ACK',
+- 'flags_URG', 
+- 'flags_ECE', 
+- 'flags_CWR'
+
+The PCAP files were processed into a set of these flows where each flow was labeled as being from a malicious capture (1) or a benign capture. I supplemented the benign PCAP files with two additional PCAP files since the benign data set provided has significantly fewer flows that the aggregate of the malware samples (these supplemental data sets are included in the data directory of the repo)
+
+The data was divided into a training and validation set randomly. 
+
+## Model Selection 
+
+I tested a set of (6-8) Machine learning pipelines on this processed data set, as can be seen in the `00_core.ipynb`. The principal metric I used in comparing models was the (AUC: Area under the Curve) based on ROC Curves for the models. I also performed a five-fold cross-validation of the model performances overall accuracy on the training data. 
+
+
+
+## ML Ops Pipeline 
+Design a pipeline for your model in Elastic. The pipeline should include the technologies that you will use, whether this is Elastic or others, for the following:
+- Feature registry,
+- Model registry,
+- Model Deployment, 
+- - Testing.
+
+The logical building blocks for the training, deployment and testing of a malware prediction model can be broken down into some logical flows:
+
+1. Raw data storage. This involves the storage of the raw PCAP data as provided as the training data in this project along with partitions of the PCAP data 
+2. Feature engineering. This involves the tranformation of the raw PCAP data into the features which will be fed into the ML algorithm used in the classification. Specifically, for my work this involves the transformation of PCAP data into flows and the computation of the summary statistics on those flows. These feature transformations should then be saved for either use in prediction or training. To ensure the reproducibility of these computations the transformation component of the pipeline should be versioned and this information stored alongside the values. 
+3. In model training this features can then be fed into a ML model for classification and these predictions compared against the known labels. Various metrics should be computed to evaluate model performance including the (overall accuracy, confusion matrix, AUC/ROC curves, F1 score, etc) and those values should be stored for comparison alongside the (data version and model version). 
+4. For models which are deployed for inference the model metrics
+5. 
+
+## Conclusions 
+
+## References
+
