@@ -1,18 +1,13 @@
 # Malware Detection from Network Captures
 Kevin Hannay
 
--   [<span class="toc-section-number">1</span>
-    Introduction](#introduction)
-    -   [<span class="toc-section-number">1.1</span>
-        Assumptions](#assumptions)
--   [<span class="toc-section-number">2</span> Feature
-    Engineering](#feature-engineering)
--   [<span class="toc-section-number">3</span> Model
-    Selection](#model-selection)
--   [<span class="toc-section-number">4</span> ML Ops
-    Pipeline](#ml-ops-pipeline)
--   [<span class="toc-section-number">5</span>
-    Conclusions](#conclusions)
+- [Malware Detection from Network Captures](#malware-detection-from-network-captures)
+  - [Introduction](#introduction)
+    - [Assumptions](#assumptions)
+  - [Feature Engineering](#feature-engineering)
+  - [Model Selection](#model-selection)
+  - [ML Ops Pipeline](#ml-ops-pipeline)
+  - [Conclusions](#conclusions)
 
 ## Introduction
 
@@ -253,7 +248,7 @@ model pipelines applied to the validation data flows are shown in
 [Figure 1](#fig-confusion-matrix). The random forest and XGBoost
 classifiers perform the best achieving accuracies in the high 90’s.
 
-<img src="../img/confusion.png" id="fig-confusion-matrix"
+<img src="./img/confusion.png" id="fig-confusion-matrix"
 alt="Figure 1: Confusion Matrices: For ML pipelines showing the classification accuracy by true label" />
 
 The confusion matrices error rates can be adjusted by adjusting the
@@ -264,7 +259,7 @@ The ROC curves for the different models are shown in
 [Figure 2](#fig-roc-curves). The area under these curves is the AUC
 metric which is a measure of the overall accuracy of the model.
 
-<img src="../img/roc.png" id="fig-roc-curves"
+<img src="./img/roc.png" id="fig-roc-curves"
 alt="Figure 2: ROC Curves: For ML pipelines showing the classification accuracy by true label" />
 
 We can also examine the model calibration which is a measure of how well
@@ -273,7 +268,7 @@ curves for the different models are shown in
 [Figure 3](#fig-calibration-curves). The calibration curves show that
 each of the models are reasonably well calibrated.
 
-<img src="../img/calibration.png" id="fig-calibration-curves"
+<img src="./img/calibration.png" id="fig-calibration-curves"
 alt="Figure 3: Calibration Curves for the models: Which examines how meaningful the probability predictions are made by the models" />
 
 I applied a 5-fold cross validation procedure for each of the model
@@ -284,7 +279,7 @@ and each of these models have a small degree of variance in their
 performance. This indicates they haven’t been overfit to the training
 data.
 
-<img src="../img/cv.png" id="fig-cross-validation"
+<img src="./img/cv.png" id="fig-cross-validation"
 alt="Figure 4: Cross Validation Results: Showing the accuracy of the models on the training data" />
 
 The principal metric I used in comparing models was the (AUC: Area under
@@ -316,7 +311,7 @@ directory. The results of the test are shown in
 the test data as well, with a small drop in the accuracy seen for the
 validation and cross validation data.
 
-<img src="../img/test_set.png" id="fig-test-results"
+<img src="./img/test_set.png" id="fig-test-results"
 alt="Figure 5: Test Results: Showing the accuracy of the models on the test data. Keep in mind this is a very small test set." />
 
 ## ML Ops Pipeline
@@ -338,7 +333,7 @@ At a broad level the pipeline steps for inference are:
     probability) as a field.
 -   Visualize the predictions and log key metrics.
 
-<img src="../img/elastic_diagram.png" id="fig-ml-ops-pipeline"
+<img src="./img/elastic_diagram.png" id="fig-ml-ops-pipeline"
 alt="Figure 6: ML Ops Pipeline: A diagram illustrating the elastic MLOps pipeline discussed in this report" />
 
 In the [Figure 6](#fig-ml-ops-pipeline) I have illustrated a flow where
