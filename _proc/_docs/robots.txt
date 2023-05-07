@@ -1,1 +1,0 @@
-Sitemap: https://khannay.github.io/mdetect/sitemap.xml
