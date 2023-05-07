@@ -635,7 +635,7 @@ def load_training_validation(malware_path: Path, # Path to Malware samples
                              benign_path: Path, # Path to Benign samples
                              load: bool = True, # Load the data from disk if already built
                              save: bool = True, # Save the data to disk, can be used for quick loading later
-                             store_path: Path | None = None, # Path to store the data
+                             store_path= None, # Path to store the data
                              *args , 
                              **kwargs
                              ) -> Tuple[pd.DataFrame, np.array]:
