@@ -45,6 +45,7 @@ My overall technique focused on extracting features which should generalize well
 In the end I ended up constructing a set of 23 features (before one-hot-encoding) which I used in the final model. These features are as follows:
 
 ```{python}
+#| echo: false
 #| label: tbl-features
 #| tbl-cap: The features used in the classification algorithms
 
@@ -69,29 +70,29 @@ The PCAP files were processed into a set of these flows where each flow was labe
 
 ## Model Selection 
 
-I tested a set of machine learning pipelines on this processed data set, as can be seen in the `00_core.ipynb`. The confusion matrices for the model pipelines applied to the validation data flows are shown in figure @fig-confusion-matrix. The random forest and XGBoost classifiers perform the best achieving accuracies in the high 90's. 
+I tested a set of machine learning pipelines on this processed data set, as can be seen in the `00_core.ipynb`. The confusion matrices for the model pipelines applied to the validation data flows are shown in @fig-confusion-matrix. The random forest and XGBoost classifiers perform the best achieving accuracies in the high 90's. 
 
-![Confusion Matrices: For ML pipelines showing the classification accuracy by true label](./img/confusion.png){#fig-confusion-matrix}
+![Confusion Matrices: For ML pipelines showing the classification accuracy by true label](../img/confusion.png){#fig-confusion-matrix}
 
-The confusion matrices error rates can be adjusted by adjusting the thresholds used to make a binary classification. To account for this ambiguity we can examine the ROC curves which show the true positive rate (TPR) vs the false positive rate (FPR) for the different models. The ROC curves for the different models are shown in figure @fig-roc-curves. The area under these curves is the AUC metric which is a measure of the overall accuracy of the model. 
+The confusion matrices error rates can be adjusted by adjusting the thresholds used to make a binary classification. To account for this ambiguity we can examine the ROC curves which show the true positive rate (TPR) vs the false positive rate (FPR) for the different models. The ROC curves for the different models are shown in @fig-roc-curves. The area under these curves is the AUC metric which is a measure of the overall accuracy of the model. 
 
-![ROC Curves: For ML pipelines showing the classification accuracy by true label](./img/roc.png){#fig-roc-curves}
+![ROC Curves: For ML pipelines showing the classification accuracy by true label](../img/roc.png){#fig-roc-curves}
 
-We can also examine the model calibration which is a measure of how well the model probabilities match the true probabilities. The calibration curves for the different models are shown in figure @fig-calibration-curves. The calibration curves show that each of the models are reasonably well calibrated. 
+We can also examine the model calibration which is a measure of how well the model probabilities match the true probabilities. The calibration curves for the different models are shown in @fig-calibration-curves. The calibration curves show that each of the models are reasonably well calibrated. 
 
-![Calibration Curves for the models: Which examines how meaningful the probability predictions are made by the models ](./img/calibration.png){#fig-calibration-curves}
+![Calibration Curves for the models: Which examines how meaningful the probability predictions are made by the models ](../img/calibration.png){#fig-calibration-curves}
 
-I applied a 5-fold cross validation procedure for each of the model pipelines as well. The results of this cross validation are shown in figure @fig-cross-validation. The cross validation results show that the random forest and XGBoost classifiers perform the best overall, and each of these models have a small degree of variance in their performance. This indicates they haven't been overfit to the training data.
+I applied a 5-fold cross validation procedure for each of the model pipelines as well. The results of this cross validation are shown in @fig-cross-validation. The cross validation results show that the random forest and XGBoost classifiers perform the best overall, and each of these models have a small degree of variance in their performance. This indicates they haven't been overfit to the training data.
 
-![Cross Validation Results: Showing the accuracy of the models on the training data](./img/cv.png){#fig-cross-validation}
+![Cross Validation Results: Showing the accuracy of the models on the training data](../img/cv.png){#fig-cross-validation}
 
-The principal metric I used in comparing models was the (AUC: Area under the Curve) based on ROC Curves for the models as seen in figure @fig-roc-curves. The random forest and XGBoost classifiers performed the best overall. This isn't surprising since these models are the standard for tabular data classification problems like the one considered here. Overall I would recommend the XGBoost classifier because of its ease in implementation on the elastic stack (although random forests are almost as easy as well), speed of training and inference. 
+The principal metric I used in comparing models was the (AUC: Area under the Curve) based on ROC Curves for the models as seen in @fig-roc-curves. The random forest and XGBoost classifiers performed the best overall. This isn't surprising since these models are the standard for tabular data classification problems like the one considered here. Overall I would recommend the XGBoost classifier because of its ease in implementation on the elastic stack (although random forests are almost as easy as well), speed of training and inference. 
 
 The poor performance for the SVM/Logistic Regression models is likely due to the fact that the data is not linearly separable. A neural network model will likely perform worse than these models (and indeed they do in my experimentation) since they assume some smoothness in the data which is not present here. The details for the models are outlined in the `nbs/00_core.ipynb` notebook.
 
-Finally, after completing my analysis and model tuning I evaluated the ML models on a small test data set not used in training or validation. For this I used a PCAP file for malware not contained in the training or validation data [available here](https://malware-traffic-analysis.net/2022/01/07/index.html). I also collected some benign results from my home network to evaluate the model on. These test PCAP files are located in the `data/test` directory. The results of the test are shown in figure @fig-test-results. The XGBoost model performs the best on the test data as well, with a small drop in the accuracy seen for the validation and cross validation data.
+Finally, after completing my analysis and model tuning I evaluated the ML models on a small test data set not used in training or validation. For this I used a PCAP file for malware not contained in the training or validation data [available here](https://malware-traffic-analysis.net/2022/01/07/index.html). I also collected some benign results from my home network to evaluate the model on. These test PCAP files are located in the `data/test` directory. The results of the test are shown in @fig-test-results. The XGBoost model performs the best on the test data as well, with a small drop in the accuracy seen for the validation and cross validation data.
 
-![Test Results: Showing the accuracy of the models on the test data. Keep in mind this is a very small test set.](./img/test_set.png){#fig-test-results}
+![Test Results: Showing the accuracy of the models on the test data. Keep in mind this is a very small test set.](../img/test_set.png){#fig-test-results}
 
 ## ML Ops Pipeline 
 Since the underlying classifier is the well known XGBoost classifier this whole stack can be configured to run on elastic cloud as a classification task. The model training can also be done on an elastic ML node using a data frame analytics job. Integrating with the elastic stack takes care of a lot of the ML Ops pipeline including feature registry, model versioning, and model deployment. Testing and monitoring can also be done within the elastic stack using a Kibana dashboard.
@@ -103,9 +104,9 @@ At a broad level the pipeline steps for inference are:
 * Index the flows into elastic search with the prediction (malware probability) as a field. 
 * Visualize the predictions and log key metrics. 
 
-![ML Ops Pipeline: A diagram illustrating the elastic MLOps pipeline discussed in this report](./img/elastic_diagram.png){#fig-ml-ops-pipeline}
+![ML Ops Pipeline: A diagram illustrating the elastic MLOps pipeline discussed in this report](../img/elastic_diagram.png){#fig-ml-ops-pipeline}
 
-In the figure @fig-ml-ops-pipeline I have illustrated a flow where the initial PCAP data is stored in AWS S3 and then inserted into elastic search using an ingestion pipeline. I is also possible that filtered PCAP data is streamed directly into a ingestion pipeline if that is a customer need. However, given the shear size of PCAP data files I have illustrated the pipeline with batched runs from an S3 bucket. This pipeline would effectively run featuring engineering pipeline PCAP -> Flows -> Statistics on the ingested PCAP data and insert the data into a elastic data frame. 
+In the @fig-ml-ops-pipeline I have illustrated a flow where the initial PCAP data is stored in AWS S3 and then inserted into elastic search using an ingestion pipeline. I is also possible that filtered PCAP data is streamed directly into a ingestion pipeline if that is a customer need. However, given the shear size of PCAP data files I have illustrated the pipeline with batched runs from an S3 bucket. This pipeline would effectively run featuring engineering pipeline PCAP -> Flows -> Statistics on the ingested PCAP data and insert the data into a elastic data frame. 
 
 In order to support a effective CI/CD pipeline I would advocate that this process is put under a CI/CD pipeline linked to a source repository, so that any changes to the malware-transform function are automatically deployed to the elastic cloud from the main branch of the repository. The next step in the pipeline is to call the machine learning model on new data inserted into elastic. A registered classification model within elastic can be added to a ingestion pipeline so that the malware probability prediction is added to the data as it is indexed into elastic.  
 

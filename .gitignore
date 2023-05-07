@@ -82,15 +82,16 @@ target/
 profile_default/
 ipython_config.py
 
-*.pcap 
-*.pcapng 
 *.DS_Store
 *.pyc
 *.zip 
 prompt.pdf
 
+requirements.in 
 *.csv 
 *.pkl 
+
+/data/tmp/*
 
 /data/datastore/*
 *.egg-info

@@ -91,8 +91,11 @@ def main_transform():
     parser.add_argument('--save', type=str, default=".", help='save the features to disk at this path')
     args = parser.parse_args()
     
-    X, y = load_training_validation(Path(args.malware), Path(args.benign), save=True, load=False, save_path=Path(args.save))
-    
+    X, y = load_training_validation(Path(args.malware), 
+                                    Path(args.benign), 
+                                    save=True, 
+                                    load=False,
+                                    store_path=Path(args.save))
     print(f"Features saved to {args.save}")
 
 # %% ../nbs/02_cli.ipynb 5
@@ -108,9 +111,5 @@ def main_predict():
     y_pred = pipeline.predict(Xt)
     
     print(f"Prediction: {y_pred.sum()} malware flows detected out of {len(y_pred)} flows")
-    
-    
-    
-    
     
     

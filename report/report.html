@@ -21,40 +21,6 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
-/* CSS for syntax highlighting */
-pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
-pre > code.sourceCode > span:empty { height: 1.2em; }
-.sourceCode { overflow: visible; }
-code.sourceCode > span { color: inherit; text-decoration: inherit; }
-div.sourceCode { margin: 1em 0; }
-pre.sourceCode { margin: 0; }
-@media screen {
-div.sourceCode { overflow: auto; }
-}
-@media print {
-pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
-}
-pre.numberSource code
-  { counter-reset: source-line 0; }
-pre.numberSource code > span
-  { position: relative; left: -4em; counter-increment: source-line; }
-pre.numberSource code > span > a:first-child::before
-  { content: counter(source-line);
-    position: relative; left: -1em; text-align: right; vertical-align: baseline;
-    border: none; display: inline-block;
-    -webkit-touch-callout: none; -webkit-user-select: none;
-    -khtml-user-select: none; -moz-user-select: none;
-    -ms-user-select: none; user-select: none;
-    padding: 0 4px; width: 4em;
-  }
-pre.numberSource { margin-left: 3em;  padding-left: 4px; }
-div.sourceCode
-  {   }
-@media screen {
-pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
-}
 </style>
 
 
@@ -145,23 +111,6 @@ pip install -e .</code></pre>
 <p>My overall technique focused on extracting features which should generalize well when applied to new network captures. Therefore, I tried to avoid using features that might be specific to the particular network used in the capture. For example, while I developed some features based on the Inner Arrival Times of the packets I avoided using these features in the final model as they would be specific to the network used in the capture. However, in the event that we have access to data collected on a single network, these features could be used to improve the model.</p>
 <p>In the end I ended up constructing a set of 23 features (before one-hot-encoding) which I used in the final model. These features are as follows:</p>
 <div class="cell" data-execution_count="1">
-<details>
-<summary>Code</summary>
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> IPython.display <span class="im">import</span> Markdown</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> tabulate <span class="im">import</span> tabulate</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>feature_names <span class="op">=</span> [<span class="st">'duration'</span>, <span class="st">'pkts_rate'</span>, <span class="st">'bytes_rate'</span>, <span class="st">'mean_size'</span>, <span class="st">'std_sizes'</span>,</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>       <span class="st">'q1_sizes'</span>, <span class="st">'q2_sizes'</span>, <span class="st">'q3_sizes'</span>, <span class="st">'min_sizes'</span>, <span class="st">'max_sizes'</span>,</span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>       <span class="st">'num_pkts'</span>, <span class="st">'num_bytes'</span>, <span class="st">'flags_FIN'</span>, <span class="st">'flags_SYN'</span>, <span class="st">'flags_RST'</span>, <span class="st">'flags_PSH'</span>, <span class="st">'flags_ACK'</span>,</span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>       <span class="st">'flags_URG'</span>, <span class="st">'flags_ECE'</span>, <span class="st">'flags_CWR'</span>, <span class="st">'src_port'</span>, <span class="st">'dst_port'</span>, <span class="st">'protocol'</span>,]</span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>feature_type <span class="op">=</span> [<span class="st">'numeric'</span> <span class="cf">for</span> _ <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">20</span>)]  <span class="op">+</span> [<span class="st">'categorical'</span> <span class="cf">for</span> _ <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">3</span>)]</span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>descriptions <span class="op">=</span> [<span class="st">"Duration of the flow"</span>, <span class="st">"Rate of packet flow"</span>, <span class="st">"Rate of bytes transmitted"</span>, <span class="st">"Mean size of the packets"</span>, <span class="st">"Standard Devation in Packet size"</span>, <span class="st">"First quartile in sizes"</span>, <span class="st">"second quartile (median) in sizes"</span>, <span class="st">"Third quartile in sizes"</span>, <span class="st">"minimum size"</span>, <span class="st">"maximum size"</span>, <span class="st">"Total number of packets"</span>, <span class="st">"Total bytes"</span>, <span class="st">"Total FIN flags"</span>, <span class="st">"Total SYN flags"</span>, <span class="st">"Total RST flags"</span>, <span class="st">"total PSH flags"</span>, <span class="st">"total ACK flags"</span>, <span class="st">"Total URG flags"</span>, <span class="st">"Total ECE flags"</span>, <span class="st">"total CWR flags"</span>, <span class="st">"Source port"</span>, <span class="st">"Destination ports"</span>, <span class="st">"Protocol (UDP/TCP/ICMP)"</span>]</span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>feature_table <span class="op">=</span> <span class="bu">list</span>(<span class="bu">zip</span>(feature_names, feature_type, descriptions))</span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>Markdown(tabulate(</span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>  feature_table, </span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>  headers<span class="op">=</span>[<span class="st">"Name"</span>,<span class="st">"Type"</span>, <span class="st">"Description"</span>]</span>
-<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
 <div class="cell-output cell-output-display" data-execution_count="1">
 <div id="tbl-features" class="anchored">
 <table class="table table-sm table-striped small">
@@ -298,40 +247,40 @@ pip install -e .</code></pre>
 </section>
 <section id="model-selection" class="level2" data-number="3">
 <h2 data-number="3" class="anchored" data-anchor-id="model-selection"><span class="header-section-number">3</span> Model Selection</h2>
-<p>I tested a set of machine learning pipelines on this processed data set, as can be seen in the <code>00_core.ipynb</code>. The confusion matrices for the model pipelines applied to the validation data flows are shown in figure <a href="#fig-confusion-matrix">Figure&nbsp;1</a>. The random forest and XGBoost classifiers perform the best achieving accuracies in the high 90’s.</p>
+<p>I tested a set of machine learning pipelines on this processed data set, as can be seen in the <code>00_core.ipynb</code>. The confusion matrices for the model pipelines applied to the validation data flows are shown in <a href="#fig-confusion-matrix">Figure&nbsp;1</a>. The random forest and XGBoost classifiers perform the best achieving accuracies in the high 90’s.</p>
 <div id="fig-confusion-matrix" class="quarto-figure quarto-figure-center anchored">
 <figure class="figure">
-<p><img src="./img/confusion.png" class="img-fluid figure-img"></p>
+<p><img src="../img/confusion.png" class="img-fluid figure-img"></p>
 <p></p><figcaption class="figure-caption">Figure&nbsp;1: Confusion Matrices: For ML pipelines showing the classification accuracy by true label</figcaption><p></p>
 </figure>
 </div>
-<p>The confusion matrices error rates can be adjusted by adjusting the thresholds used to make a binary classification. To account for this ambiguity we can examine the ROC curves which show the true positive rate (TPR) vs the false positive rate (FPR) for the different models. The ROC curves for the different models are shown in figure <a href="#fig-roc-curves">Figure&nbsp;2</a>. The area under these curves is the AUC metric which is a measure of the overall accuracy of the model.</p>
+<p>The confusion matrices error rates can be adjusted by adjusting the thresholds used to make a binary classification. To account for this ambiguity we can examine the ROC curves which show the true positive rate (TPR) vs the false positive rate (FPR) for the different models. The ROC curves for the different models are shown in <a href="#fig-roc-curves">Figure&nbsp;2</a>. The area under these curves is the AUC metric which is a measure of the overall accuracy of the model.</p>
 <div id="fig-roc-curves" class="quarto-figure quarto-figure-center anchored">
 <figure class="figure">
-<p><img src="./img/roc.png" class="img-fluid figure-img"></p>
+<p><img src="../img/roc.png" class="img-fluid figure-img"></p>
 <p></p><figcaption class="figure-caption">Figure&nbsp;2: ROC Curves: For ML pipelines showing the classification accuracy by true label</figcaption><p></p>
 </figure>
 </div>
-<p>We can also examine the model calibration which is a measure of how well the model probabilities match the true probabilities. The calibration curves for the different models are shown in figure <a href="#fig-calibration-curves">Figure&nbsp;3</a>. The calibration curves show that each of the models are reasonably well calibrated.</p>
+<p>We can also examine the model calibration which is a measure of how well the model probabilities match the true probabilities. The calibration curves for the different models are shown in <a href="#fig-calibration-curves">Figure&nbsp;3</a>. The calibration curves show that each of the models are reasonably well calibrated.</p>
 <div id="fig-calibration-curves" class="quarto-figure quarto-figure-center anchored">
 <figure class="figure">
-<p><img src="./img/calibration.png" class="img-fluid figure-img"></p>
+<p><img src="../img/calibration.png" class="img-fluid figure-img"></p>
 <p></p><figcaption class="figure-caption">Figure&nbsp;3: Calibration Curves for the models: Which examines how meaningful the probability predictions are made by the models</figcaption><p></p>
 </figure>
 </div>
-<p>I applied a 5-fold cross validation procedure for each of the model pipelines as well. The results of this cross validation are shown in figure <a href="#fig-cross-validation">Figure&nbsp;4</a>. The cross validation results show that the random forest and XGBoost classifiers perform the best overall, and each of these models have a small degree of variance in their performance. This indicates they haven’t been overfit to the training data.</p>
+<p>I applied a 5-fold cross validation procedure for each of the model pipelines as well. The results of this cross validation are shown in <a href="#fig-cross-validation">Figure&nbsp;4</a>. The cross validation results show that the random forest and XGBoost classifiers perform the best overall, and each of these models have a small degree of variance in their performance. This indicates they haven’t been overfit to the training data.</p>
 <div id="fig-cross-validation" class="quarto-figure quarto-figure-center anchored">
 <figure class="figure">
-<p><img src="./img/cv.png" class="img-fluid figure-img"></p>
+<p><img src="../img/cv.png" class="img-fluid figure-img"></p>
 <p></p><figcaption class="figure-caption">Figure&nbsp;4: Cross Validation Results: Showing the accuracy of the models on the training data</figcaption><p></p>
 </figure>
 </div>
-<p>The principal metric I used in comparing models was the (AUC: Area under the Curve) based on ROC Curves for the models as seen in figure <a href="#fig-roc-curves">Figure&nbsp;2</a>. The random forest and XGBoost classifiers performed the best overall. This isn’t surprising since these models are the standard for tabular data classification problems like the one considered here. Overall I would recommend the XGBoost classifier because of its ease in implementation on the elastic stack (although random forests are almost as easy as well), speed of training and inference.</p>
+<p>The principal metric I used in comparing models was the (AUC: Area under the Curve) based on ROC Curves for the models as seen in <a href="#fig-roc-curves">Figure&nbsp;2</a>. The random forest and XGBoost classifiers performed the best overall. This isn’t surprising since these models are the standard for tabular data classification problems like the one considered here. Overall I would recommend the XGBoost classifier because of its ease in implementation on the elastic stack (although random forests are almost as easy as well), speed of training and inference.</p>
 <p>The poor performance for the SVM/Logistic Regression models is likely due to the fact that the data is not linearly separable. A neural network model will likely perform worse than these models (and indeed they do in my experimentation) since they assume some smoothness in the data which is not present here. The details for the models are outlined in the <code>nbs/00_core.ipynb</code> notebook.</p>
-<p>Finally, after completing my analysis and model tuning I evaluated the ML models on a small test data set not used in training or validation. For this I used a PCAP file for malware not contained in the training or validation data <a href="https://malware-traffic-analysis.net/2022/01/07/index.html">available here</a>. I also collected some benign results from my home network to evaluate the model on. These test PCAP files are located in the <code>data/test</code> directory. The results of the test are shown in figure <a href="#fig-test-results">Figure&nbsp;5</a>. The XGBoost model performs the best on the test data as well, with a small drop in the accuracy seen for the validation and cross validation data.</p>
+<p>Finally, after completing my analysis and model tuning I evaluated the ML models on a small test data set not used in training or validation. For this I used a PCAP file for malware not contained in the training or validation data <a href="https://malware-traffic-analysis.net/2022/01/07/index.html">available here</a>. I also collected some benign results from my home network to evaluate the model on. These test PCAP files are located in the <code>data/test</code> directory. The results of the test are shown in <a href="#fig-test-results">Figure&nbsp;5</a>. The XGBoost model performs the best on the test data as well, with a small drop in the accuracy seen for the validation and cross validation data.</p>
 <div id="fig-test-results" class="quarto-figure quarto-figure-center anchored">
 <figure class="figure">
-<p><img src="./img/test_set.png" class="img-fluid figure-img"></p>
+<p><img src="../img/test_set.png" class="img-fluid figure-img"></p>
 <p></p><figcaption class="figure-caption">Figure&nbsp;5: Test Results: Showing the accuracy of the models on the test data. Keep in mind this is a very small test set.</figcaption><p></p>
 </figure>
 </div>
@@ -348,11 +297,11 @@ pip install -e .</code></pre>
 </ul>
 <div id="fig-ml-ops-pipeline" class="quarto-figure quarto-figure-center anchored">
 <figure class="figure">
-<p><img src="./img/elastic_diagram.png" class="img-fluid figure-img"></p>
+<p><img src="../img/elastic_diagram.png" class="img-fluid figure-img"></p>
 <p></p><figcaption class="figure-caption">Figure&nbsp;6: ML Ops Pipeline: A diagram illustrating the elastic MLOps pipeline discussed in this report</figcaption><p></p>
 </figure>
 </div>
-<p>In the figure <a href="#fig-ml-ops-pipeline">Figure&nbsp;6</a> I have illustrated a flow where the initial PCAP data is stored in AWS S3 and then inserted into elastic search using an ingestion pipeline. I is also possible that filtered PCAP data is streamed directly into a ingestion pipeline if that is a customer need. However, given the shear size of PCAP data files I have illustrated the pipeline with batched runs from an S3 bucket. This pipeline would effectively run featuring engineering pipeline PCAP -&gt; Flows -&gt; Statistics on the ingested PCAP data and insert the data into a elastic data frame.</p>
+<p>In the <a href="#fig-ml-ops-pipeline">Figure&nbsp;6</a> I have illustrated a flow where the initial PCAP data is stored in AWS S3 and then inserted into elastic search using an ingestion pipeline. I is also possible that filtered PCAP data is streamed directly into a ingestion pipeline if that is a customer need. However, given the shear size of PCAP data files I have illustrated the pipeline with batched runs from an S3 bucket. This pipeline would effectively run featuring engineering pipeline PCAP -&gt; Flows -&gt; Statistics on the ingested PCAP data and insert the data into a elastic data frame.</p>
 <p>In order to support a effective CI/CD pipeline I would advocate that this process is put under a CI/CD pipeline linked to a source repository, so that any changes to the malware-transform function are automatically deployed to the elastic cloud from the main branch of the repository. The next step in the pipeline is to call the machine learning model on new data inserted into elastic. A registered classification model within elastic can be added to a ingestion pipeline so that the malware probability prediction is added to the data as it is indexed into elastic.</p>
 <p>Model training could also be performed within the elastic cloud using a data frame analytics job, or models can be trained externally and then registered using the <code>eland</code> library and the data frame analytics API. This also allows for the same key metrics I have outlined in the <code>00_core.ipynb</code> notebook to be computed and logged within elastic. Including the classification accuracy, confusion matrix, ROC curves, and visualizations of this logged data.</p>
 <p>For a deployed model we can also monitor the performance of the model using a Kibana dashboard. This dashboard can be configured to show the key metrics for the model and also to show the distribution of the malware probability predictions. This allows for the implementation of MLOps techniques like drift detection on the input data and changes in the model performance over time. Moreover, outlier detection and alerts can be configured to notify the user of anomalous behavior in the classifier predictions. For example, a sudden increase in the number of malware predictions could indicate a new malware attack or that some benign traffic has been misclassified as malware.</p>

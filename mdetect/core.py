@@ -634,8 +634,8 @@ def hash_datafiles(filelist: List[Path]) -> str:
 def load_training_validation(malware_path: Path, # Path to Malware samples
                              benign_path: Path, # Path to Benign samples
                              load: bool = True, # Load the data from disk if already built
-                             save: bool = True, # Save the data to disk
-                             store_path: Path | None= None, # Path to store the data
+                             save: bool = True, # Save the data to disk, can be used for quick loading later
+                             store_path: Path | None = None, # Path to store the data
                              *args , 
                              **kwargs
                              ) -> Tuple[pd.DataFrame, np.array]:
@@ -649,18 +649,20 @@ def load_training_validation(malware_path: Path, # Path to Malware samples
     benign_filehash = hash_datafiles(benign_files)
     malware_filehash = hash_datafiles(malware_files)
     
-    X_filename = f'X_{benign_filehash}_{malware_filehash}.csv.gz'
-    y_filename = f'y_{benign_filehash}_{malware_filehash}.csv.gz'
+    savefile_name = f'transformed_data_{benign_filehash}_{malware_filehash}.parquet.gz'
     
     # Load the data if files with those hashes exist
-    store_path = malware_path.parent / "datastore" / f"{benign_filehash}_{malware_filehash}" if store_path is None else store_path
-    store_path.mkdir(exist_ok=True)
-    files_already_exist = (store_path / X_filename).exists() and (store_path / y_filename).exists()
+    if store_path is None:
+        store_path = malware_path.parent / "tmp" / f"{benign_filehash}_{malware_filehash}" 
+    store_path.parent.mkdir(exist_ok=True) # Create tmp directory if it doesn't exist
+    store_path.mkdir(exist_ok=True) # Create the data directory if it doesn't exist
+    files_already_exist = (store_path / savefile_name).exists() # boolean to check if the file exists
     
     if load and files_already_exist:
-        print(f"Data found on disk at {store_path}: Loading from there")
-        X = pd.read_csv(store_path / X_filename, delimiter=',')
-        y = np.loadtxt(store_path / y_filename, delimiter=',')
+        print(f"Data found on disk at {store_path / savefile_name}: Loading from there")
+        df = pd.read_parquet(store_path / savefile_name)
+        y = df.label.values 
+        X = df.drop(columns=['label'])
         return X, y
         
     Xm = pd.concat([collect_flow_stats(f) for f in malware_files])
@@ -669,14 +671,18 @@ def load_training_validation(malware_path: Path, # Path to Malware samples
     y = np.array([1] * Xm.shape[0] + [0] * Xb.shape[0])
 
     if save:
-        X.to_csv(store_path / X_filename, index=False)
-        np.savetxt(store_path / y_filename, y, delimiter=',')
+        print(f"Saving data to disk as {(store_path / savefile_name)}")
+        # Add the labels to the dataframe and save as a parquet file
+        df_save = X.copy()
+        df_save['label'] = y
+        df_save.to_parquet(store_path / savefile_name, index=False)
+        
         
     return X, y
 
 
 # %% ../nbs/00_core.ipynb 42
-from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.svm import SVC 
 from sklearn.neighbors import KNeighborsClassifier 
@@ -699,17 +705,20 @@ import matplotlib.pyplot as plt
 from dataclasses import dataclass
 import seaborn as sns
 
-
-
-
-# %% ../nbs/00_core.ipynb 47
+# %% ../nbs/00_core.ipynb 48
 @dataclass
 class ModelCandidate():
+    """ 
+    A dataclass to hold a model and its name useful for keeping track of models and plotting routines 
+    """
     model: Any
     name: str
 
 @dataclass
 class ModelMetrics():
+    """ 
+        A dataclass to hold a fitted model and routines to compute and plot its metrics. 
+    """
     modelcand: ModelCandidate
     accuracy_score: float
     cv_scores: np.ndarray
@@ -773,20 +782,21 @@ class ModelMetrics():
             print("feature_importances_ not available for this model")
             
 
-        
 
-
-# %% ../nbs/00_core.ipynb 49
+# %% ../nbs/00_core.ipynb 50
 def evaluate(candidate: ModelCandidate, # Pipeline with a name attribute and a model attribute
-             X_train: np.ndarray, 
-             y_train: np.ndarray, 
-             X_test: np.ndarray, 
-             y_test: np.ndarray
+             X_train: np.ndarray, # Training data input features
+             y_train: np.ndarray, # Training data labels (1= malware, 0 = benign)
+             X_test: np.ndarray, # Test data input features 
+             y_test: np.ndarray # Test data labels (1= malware, 0 = benign)
              ) -> ModelMetrics:
     
     model = candidate.model
+    
+    # Fit the model
     model.fit(X_train, y_train)
     
+    # Precompute some metrics 
     cv_scores = cross_val_score(model, X_train, y_train, cv=5)
     acc_score = model.score(X_train, y_train)
     auc_score = roc_auc_score(y_train, model.predict_proba(X_train)[:, 1])
@@ -803,7 +813,7 @@ def evaluate(candidate: ModelCandidate, # Pipeline with a name attribute and a m
 
 
 
-# %% ../nbs/00_core.ipynb 64
+# %% ../nbs/00_core.ipynb 67
 def test_eval(malware: bool = True) -> pd.DataFrame:
     TPATH = DATA_PATH / 'test/malware' if malware else DATA_PATH / 'test/benign'
     test_type = 'malware' if malware else 'benign'
