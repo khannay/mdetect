@@ -39,3 +39,13 @@ Each of these scripts can be run with the `--help` flag to get more
 information on the arguments required. This report is a high level
 overview of the project and the notebooks contain more detailed
 information on the implementation of the project.
+
+To run the project on some included PCAP files (after doing a pip
+install -e .) the following commands can be used (from the home
+directory of the project):
+
+``` {bash}
+malware-train --malware ./data/malware --benign ./data/benign
+malware-transform --malware ./data/malware --benign ./data/benign
+malware-predict --data ./data/test/benign/output_2.pcap --model ./inference.pkl
+```
