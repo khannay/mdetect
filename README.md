@@ -4,9 +4,10 @@
 
 ## Getting Started
 
-The project report is available in the [report](./report.md) directory
-and the jupyter notebooks are available in the [nbs](nbs) directory. The
-`/nbs/00_core.ipynb` contains the core functionality of the project.
+The project report is available in the [report.md](./report.md) file and
+the jupyter notebooks are available in the [nbs](nbs) directory. The
+[core](./nbs/00_core.ipynb)) `/nbs/00_core.ipynb` contains the core
+functionality of the project.
 
 From the home directory of the project the python package can be
 installed using the following command:
