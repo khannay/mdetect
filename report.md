@@ -325,9 +325,7 @@ In this project I have demonstrated the use of machine learning to
 classify network traffic as either malicious or benign. I have shown
 that the XGBoost/Random forest classifiers perform the best overall in
 this task, after designing a feature engineering workflow to extract
-tabular data from raw PCAP files. I have also outlined a ML Ops pipeline
-for the training, deployment and testing of a malware prediction model
-within the elastic stack.
+tabular data from raw PCAP files. 
 
 The next step in future work would be to scale up the amount and variety
 of data used to train the models. The high degree of variability in
