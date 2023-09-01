@@ -1,13 +1,18 @@
 # Malware Detection from Network Captures
 Kevin Hannay
 
-- [Malware Detection from Network Captures](#malware-detection-from-network-captures)
-  - [Introduction](#introduction)
-    - [Assumptions](#assumptions)
-  - [Feature Engineering](#feature-engineering)
-  - [Model Selection](#model-selection)
-  - [ML Ops Pipeline](#ml-ops-pipeline)
-  - [Conclusions](#conclusions)
+-   [<span class="toc-section-number">1</span>
+    Introduction](#introduction)
+    -   [<span class="toc-section-number">1.1</span>
+        Assumptions](#assumptions)
+-   [<span class="toc-section-number">2</span> Feature
+    Engineering](#feature-engineering)
+-   [<span class="toc-section-number">3</span> Model
+    Selection](#model-selection)
+-   [<span class="toc-section-number">4</span> ML Ops
+    Pipeline](#ml-ops-pipeline)
+-   [<span class="toc-section-number">5</span>
+    Conclusions](#conclusions)
 
 ## Introduction
 
@@ -248,7 +253,7 @@ model pipelines applied to the validation data flows are shown in
 [Figure 1](#fig-confusion-matrix). The random forest and XGBoost
 classifiers perform the best achieving accuracies in the high 90’s.
 
-<img src="./img/confusion.png" id="fig-confusion-matrix"
+<img src="../img/confusion.png" id="fig-confusion-matrix"
 alt="Figure 1: Confusion Matrices: For ML pipelines showing the classification accuracy by true label" />
 
 The confusion matrices error rates can be adjusted by adjusting the
@@ -259,7 +264,7 @@ The ROC curves for the different models are shown in
 [Figure 2](#fig-roc-curves). The area under these curves is the AUC
 metric which is a measure of the overall accuracy of the model.
 
-<img src="./img/roc.png" id="fig-roc-curves"
+<img src="../img/roc.png" id="fig-roc-curves"
 alt="Figure 2: ROC Curves: For ML pipelines showing the classification accuracy by true label" />
 
 We can also examine the model calibration which is a measure of how well
@@ -268,7 +273,7 @@ curves for the different models are shown in
 [Figure 3](#fig-calibration-curves). The calibration curves show that
 each of the models are reasonably well calibrated.
 
-<img src="./img/calibration.png" id="fig-calibration-curves"
+<img src="../img/calibration.png" id="fig-calibration-curves"
 alt="Figure 3: Calibration Curves for the models: Which examines how meaningful the probability predictions are made by the models" />
 
 I applied a 5-fold cross validation procedure for each of the model
@@ -279,7 +284,7 @@ and each of these models have a small degree of variance in their
 performance. This indicates they haven’t been overfit to the training
 data.
 
-<img src="./img/cv.png" id="fig-cross-validation"
+<img src="../img/cv.png" id="fig-cross-validation"
 alt="Figure 4: Cross Validation Results: Showing the accuracy of the models on the training data" />
 
 The principal metric I used in comparing models was the (AUC: Area under
@@ -311,69 +316,8 @@ directory. The results of the test are shown in
 the test data as well, with a small drop in the accuracy seen for the
 validation and cross validation data.
 
-<img src="./img/test_set.png" id="fig-test-results"
+<img src="../img/test_set.png" id="fig-test-results"
 alt="Figure 5: Test Results: Showing the accuracy of the models on the test data. Keep in mind this is a very small test set." />
-
-## ML Ops Pipeline
-
-Since the underlying classifier is the well known XGBoost classifier
-this whole stack can be configured to run on elastic cloud as a
-classification task. The model training can also be done on an elastic
-ML node using a data frame analytics job. Integrating with the elastic
-stack takes care of a lot of the ML Ops pipeline including feature
-registry, model versioning, and model deployment. Testing and monitoring
-can also be done within the elastic stack using a Kibana dashboard.
-
-At a broad level the pipeline steps for inference are:
-
--   Transform a PCAP file into a set of flows and compute the summary
-    features for each flow.
--   Call the XGBoost model to make a prediction on each flow.
--   Index the flows into elastic search with the prediction (malware
-    probability) as a field.
--   Visualize the predictions and log key metrics.
-
-<img src="./img/elastic_diagram.png" id="fig-ml-ops-pipeline"
-alt="Figure 6: ML Ops Pipeline: A diagram illustrating the elastic MLOps pipeline discussed in this report" />
-
-In the [Figure 6](#fig-ml-ops-pipeline) I have illustrated a flow where
-the initial PCAP data is stored in AWS S3 and then inserted into elastic
-search using an ingestion pipeline. I is also possible that filtered
-PCAP data is streamed directly into a ingestion pipeline if that is a
-customer need. However, given the shear size of PCAP data files I have
-illustrated the pipeline with batched runs from an S3 bucket. This
-pipeline would effectively run featuring engineering pipeline PCAP -\>
-Flows -\> Statistics on the ingested PCAP data and insert the data into
-a elastic data frame.
-
-In order to support a effective CI/CD pipeline I would advocate that
-this process is put under a CI/CD pipeline linked to a source
-repository, so that any changes to the malware-transform function are
-automatically deployed to the elastic cloud from the main branch of the
-repository. The next step in the pipeline is to call the machine
-learning model on new data inserted into elastic. A registered
-classification model within elastic can be added to a ingestion pipeline
-so that the malware probability prediction is added to the data as it is
-indexed into elastic.
-
-Model training could also be performed within the elastic cloud using a
-data frame analytics job, or models can be trained externally and then
-registered using the `eland` library and the data frame analytics API.
-This also allows for the same key metrics I have outlined in the
-`00_core.ipynb` notebook to be computed and logged within elastic.
-Including the classification accuracy, confusion matrix, ROC curves, and
-visualizations of this logged data.
-
-For a deployed model we can also monitor the performance of the model
-using a Kibana dashboard. This dashboard can be configured to show the
-key metrics for the model and also to show the distribution of the
-malware probability predictions. This allows for the implementation of
-MLOps techniques like drift detection on the input data and changes in
-the model performance over time. Moreover, outlier detection and alerts
-can be configured to notify the user of anomalous behavior in the
-classifier predictions. For example, a sudden increase in the number of
-malware predictions could indicate a new malware attack or that some
-benign traffic has been misclassified as malware.
 
 ## Conclusions
 
@@ -396,13 +340,4 @@ model to see if I could improve the performance of the model. I have
 used a bayesian optimization routine for this tuning in the past and
 expect it would work well under these circumstances.
 
-As a more long term project I would like to explore the use of
-techniques from Natural Language Processing to malware detection from
-network traffic. The idea would be to translate the flows into a
-symbolic language describing the packets and then apply a transformer
-architecture to the problem. The ability of transformers to capture long
-range dependencies in sequences of symbols would be well suited to this
-problem. This model could be run alongside the XGBoost summary statistic
-approach as an ensemble model to detect malware signatures from the
-network traffic. Elastic has added support for NLP (hugging face) models
-and this would provide a good opportunity to explore this new feature.
+
